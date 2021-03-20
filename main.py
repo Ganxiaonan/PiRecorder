@@ -42,7 +42,46 @@ def show_frame():
 
 closeButton = tk.Button(mainWindow, text = "CLOSE", font = fontButtons, bg = white, width = 20, height= 1)
 closeButton.configure(command= lambda: mainWindow.destroy())              
-closeButton.place(x=270,y=430)	
+closeButton.place(x=270,y=430)
+
+# Keep track of the button state on/off 
+#global is_stop 
+is_stop = True
+  
+# Create Label 
+my_label = tk.Label(mainWindow,  
+    text = "Welcome to PiRecorder!!",  
+    fg = "green",  
+    font = ("Helvetica", 32)) 
+  
+my_label.pack(pady = 20) 
+  
+# Define our switch function 
+def switch(): 
+    global is_stop 
+      
+    # Determin is on or off 
+    if is_stop: 
+        stop_button.config(image = stop) 
+        my_label.config(text = "Recording",  
+                        fg = "grey") 
+        is_stop = False
+    else: 
+        
+        stop_button.config(image = record) 
+        my_label.config(text = "Stopped", fg = "green") 
+        is_stop = True
+  
+# Define Our Images 
+record = tk.PhotoImage(file = "images/record.png") 
+stop = tk.PhotoImage(file = "images/stop.png") 
+  
+# Create A Button 
+stop_button = tk.Button(mainWindow, image = record, bd = 0, 
+                   command = switch) 
+stop_button.pack(pady = 50) 
 
 show_frame()  #Display
 mainWindow.mainloop()  #Starts GUI
+
+
