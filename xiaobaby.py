@@ -1,5 +1,5 @@
 from tkinter import*
-from tkinter import filedialog, ttk, messagebox
+from tkinter import filedialog, ttk, messagebox, simpledialog
 from PIL import Image, ImageTk
 import numpy as np
 import cv2
@@ -7,7 +7,7 @@ import os
 import copy
 import csv
 import upload
-
+from datetime import datetime
 
 class VideoPlayer(ttk.Frame):
 
@@ -25,9 +25,13 @@ class VideoPlayer(ttk.Frame):
         self.__play = False
         self.__algo = False
         self.__frame = np.array
-        self.__initialdir = "/"
-        self.__initialdir_movie = "/"
-
+        self.__initialdir = os.getcwd()
+        self.__initialdir_movie = os.getcwd()
+        self.student_name = None
+        self.video_folder_name = None
+        self.current_time = None
+        self.video_file_name = None
+    
         # protected
         self._command = []
 
@@ -81,7 +85,7 @@ class VideoPlayer(ttk.Frame):
 
     def _build_widget2(self, parent: ttk.Frame=None, setup: dict=dict):
 
-        self.video_dir = r"C:\Users\xiaonan\PiRecorder"
+        self.video_dir = os.getcwd()
         if parent is None:
             self.PAGE2 = Frame(self.master, relief=SUNKEN)
             #self.PAGE2.place(relx=0.1, rely=0.1, relwidth=0.8, relheight=0.8)
@@ -176,7 +180,7 @@ class VideoPlayer(ttk.Frame):
             self.icon_camera = PhotoImage(file=os.path.join(icons_path, 'camera.png'))
             button_camera = Button(control_frame, padx=10, pady=10, bd=8, fg="white", font=('arial', 12, 'bold'),
                                    text="camera", bg='black', image=self.icon_camera, height=icon_height,
-                                   width=icon_width, command=lambda: self.camera_capture_with_recording())
+                                   width=icon_width, command=lambda: self.camera_capture_with_recording())  
             button_camera.pack(side='left')
 
         if setup['pause']:
@@ -262,6 +266,15 @@ class VideoPlayer(ttk.Frame):
             except Exception as e:
                 box.showinfo( "Warning" , "Failed to delete %s\nReason: %s" %(file_path, e))
 
+    def askname(self):
+        self.student_name = simpledialog.askstring("Input", "What is your name?",
+                                parent=self)
+        if self.student_name is not None:
+            print("Your first name is ", self.student_name)
+        else:
+            print("You don't have a first name?")
+        return self.student_name
+
     def upload(self):
         with open('folder_sync_registrer.txt', 'r') as f:
             reader = csv.reader(f, delimiter=',')
@@ -346,7 +359,7 @@ class VideoPlayer(ttk.Frame):
     def camera_capture(self):
 
         self.__cap = cv2.VideoCapture(0)
-        self.__out = cv2.VideoWriter(r'C:\Users\xiaonan\PiRecorder\output.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 5, (640,480))
+        # self.__out = cv2.VideoWriter(r'C:\Users\xiaonan\PiRecorder\output.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 5, (640,480))
         self.__frames_numbers = 1
         self.__play = not self.__play
         self.run_frames()
@@ -367,21 +380,27 @@ class VideoPlayer(ttk.Frame):
                     # convert matrix image to pillow image object
                     self.frame = self.matrix_to_pillow(image_matrix)
                     self.show_image(self.frame)
-                    self.__out.write(image_matrix)
+                    # self.__out.write(image_matrix)
 
 
                 # refresh image display
             self.board.update()
 
         self.__cap.release()
-        self.__out.release()
+        # self.__out.release()
 
         cv2.destroyAllWindows()
     
     def camera_capture_with_recording(self):
-
+        self.student_name = self.askname()
+        self.video_folder_name = datetime.now().strftime("%Y-%m-%d")
+        if not os.path.exists(self.video_folder_name):
+            os.mkdir(self.video_folder_name)
+        self.current_time = datetime.now().strftime("%H-%M-%S")
+        self.video_file_name = f"{self.student_name}_{self.current_time}.avi"
+        self.pathname = os.path.join(os.getcwd(),self.video_folder_name,self.video_file_name)
         self.__cap = cv2.VideoCapture(0)
-        self.__out = cv2.VideoWriter(r'C:\Users\xiaonan\PiRecorder\output.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 10, (640,480))
+        self.__out = cv2.VideoWriter(self.pathname,cv2.VideoWriter_fourcc('M','J','P','G'), 10, (640,480))
         self.__frames_numbers = 1
         self.__play = not self.__play
         self.run_frames_with_recording()
